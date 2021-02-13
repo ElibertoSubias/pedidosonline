@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "pedidosonline",
-    "slug": "pedidosonline",
+    "name": "PedidosOnline",
+    "slug": "PedidosOnline",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -17,13 +17,13 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.yourcompany.yourappname",
+      "buildNumber": "1.0.0"
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FFFFFF"
-      }
+      "package": "com.elibertoso.pedidosonline",
+      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/favicon.png"
