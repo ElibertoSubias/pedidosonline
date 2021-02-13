@@ -1,8 +1,6 @@
 import firebase from '../../database'
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
-import { utils } from '@react-native-firebase/app';
-import storage from '@react-native-firebase/storage';
 
 // export function login({ email, password }) {
 //   firebase.auth().signInWithEmailAndPassword(email, password)
@@ -36,7 +34,7 @@ export function updateProduct(product, updateComplete) {
   console.log("Updating product in firebase");
 
   firebase.db
-    .collection('Products')
+    .collection('products')
     .doc(product.id).set(product)
     .then(() => updateComplete(product))
     .catch((error) => console.log(error));
@@ -46,7 +44,7 @@ export function deleteProduct(product, deleteComplete) {
   console.log(product);
 
   firebase.db
-    .collection('Products')
+    .collection('products')
     .doc(product.id).delete()
     .then(() => deleteComplete())
     .catch((error) => console.log(error));
@@ -70,54 +68,29 @@ export async function getProducts(productsRetreived) {
   productsRetreived(productList);
 }
 
-export function uploadProduct(product, onProductUploaded, { updating }) {
+export async function uploadProduct(product, onProductUploaded, { updating }) {
   
   if (product.imageUri) {
     const fileExtension = product.imageUri.split('.').pop();
-    // console.log("EXT: " + fileExtension);
 
     let uuid = uuidv4();
 
     const fileName = `${uuid}.${fileExtension}`;
-    // console.log(firebase);
-    console.log(fileExtension);
 
-    let storageRef = storage().ref(`products/images/${fileName}`);
-    
-    storageRef.putFile(product.imageUri)
-      .on(
-        firebase.storage.TaskEvent.STATE_CHANGED,
-        snapshot => {
-          console.log("snapshot: " + snapshot.state);
-          console.log("progress: " + (snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+    const fileData = await firebase.storage.ref(`products/images/${uuid}`).put(product.imageUri);
+    const imageSrc = await fileData.ref.getDownloadURL();
+    console.log(imageSrc);
+    product.image = imageSrc;
 
-          if (snapshot.state === firebase.storage.TaskState.SUCCESS) {
-            console.log("Success");
-          }
-        },
-        error => {
-          unsubscribe();
-          console.log("image upload error: " + error.toString());
-        },
-        () => {
-          storageRef.getDownloadURL()
-            .then((downloadUrl) => {
-              console.log("File available at: " + downloadUrl);
+    delete product.imageUri;
 
-              product.image = downloadUrl;
-
-              delete product.imageUri;
-
-              if (updating) {
-                console.log("Updating....");
-                updateFood(product, onProductUploaded);
-              } else {
-                console.log("adding...");
-                addFood(product, onProductUploaded);
-              }
-            })
-        }
-      )
+    if (updating) {
+      console.log("Updating....");
+      updateProduct(product, onProductUploaded);
+    } else {
+      console.log("adding...");
+      addProduct(product, onProductUploaded);
+    }
   } else {
     console.log("Skipping image upload");
 
@@ -125,23 +98,22 @@ export function uploadProduct(product, onProductUploaded, { updating }) {
 
     if (updating) {
       console.log("Updating....");
-      updateFood(product, onProductUploaded);
+      updateProduct(product, onProductUploaded);
     } else {
       console.log("adding...");
-      addFood(product, onProductUploaded);
+      addProduct(product, onProductUploaded);
     }
   }
 }
 
 export function addProduct(product, addComplete) {
-
     product.createdAt = Date.now();
     firebase.db
-        .collection('Products')
-        .add(product)
-        .then((snapshot) => {
-            product.id = snapshot.id;
-            snapshot.set(product);
-        }).then(() => addComplete(product))
-        .catch((error) => console.log(error));
+    .collection('products')
+    .add(product)
+    .then((snapshot) => {
+        product.id = snapshot.id;
+        snapshot.set(product);
+    }).then(() => addComplete(product))
+    .catch((error) => console.log(error));
 }
