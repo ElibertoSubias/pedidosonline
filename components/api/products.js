@@ -36,13 +36,11 @@ export function updateProduct(product, updateComplete) {
   firebase.db
     .collection('products')
     .doc(product.id).set(product)
-    .then(() => updateComplete(product))
+    .then(() => console.log('Updated correctly'))
     .catch((error) => console.log(error));
 }
 
 export function deleteProduct(product, deleteComplete) {
-  console.log(product);
-
   firebase.db
     .collection('products')
     .doc(product.id).delete()
@@ -68,52 +66,105 @@ export async function getProducts(productsRetreived) {
   productsRetreived(productList);
 }
 
-export async function uploadProduct(product, onProductUploaded, { updating }) {
+export function getProduct(idProducto) {
+
+
+  return firebase.db.collection('products').doc(idProducto).get();
+
+  // snapshot.forEach((doc) => {
+  //   const productItem = doc.data();
+  //   productItem.id = doc.id;
+  //   productList.push(productItem);
+  // });
+
   
+
+}
+
+export async function uploadProduct(product, onProductUploaded, { updating, imageChange }) {
   if (product.imageUri) {
-    const fileExtension = product.imageUri.split('.').pop();
 
-    let uuid = uuidv4();
+    if (imageChange) {
+      // const fileExtension = product.imageUri.split('.').pop();
+      const fileExtension = product.imageUri.split(';')[0].split('/')[1];
+        
+      let uuid = uuidv4();
 
-    const fileName = `${uuid}.${fileExtension}`;
+      const fileName = `${uuid}.${fileExtension}`;
 
-    const fileData = await firebase.storage.ref(`products/images/${uuid}`).put(product.imageUri);
-    const imageSrc = await fileData.ref.getDownloadURL();
-    console.log(imageSrc);
-    product.image = imageSrc;
-
-    delete product.imageUri;
-
-    if (updating) {
-      console.log("Updating....");
-      updateProduct(product, onProductUploaded);
+      const fileData = await firebase.storage.ref(`products/images/${fileName}`).putString(product.imageUri, `data_url`, {contentType:`image/${fileExtension}`});
+      const imageSrc = await fileData.ref.getDownloadURL();
+      // console.log(imageSrc);
+      product.image = imageSrc;
     } else {
-      console.log("adding...");
-      addProduct(product, onProductUploaded);
+      product.image = product.imageUri;
     }
-  } else {
-    console.log("Skipping image upload");
 
     delete product.imageUri;
 
-    if (updating) {
-      console.log("Updating....");
-      updateProduct(product, onProductUploaded);
-    } else {
-      console.log("adding...");
-      addProduct(product, onProductUploaded);
+    try {
+      
+      if (updating) {
+        console.log("Updating....");
+        updateProduct(product, onProductUploaded);
+        alert("Producto actualizado con éxito.");
+      } else {
+        console.log("adding...");
+        addProduct(product, onProductUploaded);
+        alert("Producto creado con éxito.");
+      }
+
+    } catch (error) {
+      
+      alert("Ocurrio un error al subir la imagen del producto.");
+      console.log(error);
+
+    }
+
+  } else {
+
+    try {
+      
+      console.log("Skipping image upload");
+      
+      delete product.imageUri;
+
+      if (updating) {
+        console.log("Updating....");
+        updateProduct(product, onProductUploaded);
+        alert("Producto actualizado con éxito.");
+      } else {
+        console.log("adding...");
+        addProduct(product, onProductUploaded);
+        alert("Producto creado con éxito.");
+      }
+
+    } catch (error) {
+      
+      alert("Ocurrio un error al subir la imagen del producto.");
+      console.log(error);
+
     }
   }
 }
 
 export function addProduct(product, addComplete) {
-    product.createdAt = Date.now();
-    firebase.db
-    .collection('products')
-    .add(product)
-    .then((snapshot) => {
-        product.id = snapshot.id;
-        snapshot.set(product);
-    }).then(() => addComplete(product))
-    .catch((error) => console.log(error));
+  const currentUser = product.currentUser;
+  delete product.currentUser;
+  product.createdAt = Date.now();
+  firebase.db
+  .collection('products')
+  .add(product)
+  .then((snapshot) => {
+      product.id = snapshot.id;
+      product.votes = 0;
+      product.comments = [];
+      product.creator = {
+        uid: currentUser.uid,
+        name: String(currentUser.displayName).split('|')[0]
+      };
+      product.whoHasVote = [];
+      snapshot.set(product);
+  }).then(() => console.log('Add correctly'))
+  .catch((error) => console.log(error));
 }

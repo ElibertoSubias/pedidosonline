@@ -10,7 +10,7 @@ import * as ImagePicker from 'expo-image-picker'
 
 const CurryImagePicker = ({ image, onImagePicked }) => {
 
-  const [selectedImage, setSelectedImage] = useState();
+  const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
     if (image) {
@@ -32,28 +32,38 @@ const CurryImagePicker = ({ image, onImagePicked }) => {
         setSelectedImage(result.uri);
         onImagePicked({ uri: result.uri });
     }
+  }
 
-    // ImagePicker.showImagePicker({ title: 'Pick an Image', maxWidth: 800, maxHeight: 600 },
-    //   response => {
-    //     if (response.error) {
-    //       console.log("image error");
-    //     } else {
-    //       console.log("Image: " + response.uri)
-    //       setSelectedImage({ uri: response.uri });
-    //       onImagePicked({ uri: response.uri });
-    //     }
-    //   }
-    // )
+  const takeImageHandler = async () => {
+
+    let result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+    });
+
+    if (!result.cancelled) {
+        setSelectedImage(result.uri);
+        onImagePicked({ uri: result.uri });
+    }
+
   }
 
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
-        <Image source={selectedImage} style={styles.previewImage} />
+        <Image source={selectedImage} style={styles.previewImage} name="image"/>
       </View>
-      <View styels={styles.button}>
-        <Button title="Pick Image" onPress={pickImageHandler} />
+      <View>
+        <Button styels={styles.button} title="Seleccionar fotografia" onPress={pickImageHandler} />
       </View>
+      {Platform.OS !== 'web' ? 
+        <View>
+          <Button styels={styles.button} title="Tomar fotografia" onPress={takeImageHandler} />
+        </View>
+      : null
+      }
     </View>
   )
 }
@@ -67,8 +77,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'black',
     backgroundColor: '#eee',
-    width: Platform.OS !== 'web' ? 200 : 300,
-    height: Platform.OS !== 'web' ? 200 : 300,
+    width: Platform.OS !== 'web' ? 200 : 200,
+    height: Platform.OS !== 'web' ? 200 : 200,
+    margin: 10
   },
   button: {
     margin: 8

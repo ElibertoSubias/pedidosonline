@@ -1,21 +1,26 @@
-import 'react-native-gesture-handler';
-import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { Image } from 'react-native-elements';
-import { NavigationContainer } from '@react-navigation/native';
-import { createDrawerNavigator } from '@react-navigation/drawer';
-import { createStackNavigator } from '@react-navigation/stack';
+import 'react-native-gesture-handler'
+import { StatusBar } from 'expo-status-bar'
+import React, {useEffect, useState} from 'react'
+import { StyleSheet, Text, View, TouchableOpacity, Button } from 'react-native'
+import { Image } from 'react-native-elements'
+import { NavigationContainer } from '@react-navigation/native'
+import { createDrawerNavigator } from '@react-navigation/drawer'
+import { createStackNavigator, HeaderBackButton } from '@react-navigation/stack'
 
-import { LoginScreen } from './screens/LoginScreen';
-import { RegisterScreen } from './screens/RegisterScreen';
-import { HomeScreen } from './screens/HomeScreen';
-import { NewItemScreen } from './screens/NewItemScreen';
-import { CustomListItem } from './components/CustomListItem';
-import { DetailsScreen } from './screens/DetailsScreen';
-import firebase from './database';
+import { LoginScreen } from './screens/LoginScreen'
+import { RegisterScreen } from './screens/RegisterScreen'
+import { HomeScreen } from './screens/HomeScreen'
+import { NewItemScreen } from './screens/NewItemScreen'
+import { CustomListItem } from './components/CustomListItem'
+import { DetailsScreen } from './screens/DetailsScreen'
+import { UpdateProductScreen } from './screens/UpdateProductScreen'
+import { ShoppingCartScreen } from './screens/ShoppingCartScreen'
+import firebase from './database'
+import Icon from 'react-native-vector-icons/FontAwesome'
 
-import CustomSidebarMenu from './components/CustomSidebarMenu';
+import CustomSidebarMenu from './components/CustomSidebarMenu'
+import { CarritoScreen } from './screens/ShoppingCartScreen'
+import useCarrito from './hooks/useCarrito'
 
 const Drawer = createDrawerNavigator();
 const Stack = createStackNavigator();
@@ -29,7 +34,7 @@ const NavigationDrawerStructure = (props) => {
   };
 
   return (
-    <View style={{ flexDirection: 'row' }}>
+    <View style={{ flexDirection: 'row'}}>
       <TouchableOpacity onPress={toggleDrawer}>
         {/*Donute Button Image */}
         <Image
@@ -45,12 +50,16 @@ const NavigationDrawerStructure = (props) => {
 }
 
 const HomeStackNavigator = ({navigation}) => {
+ 
   return (
     <Stack.Navigator
       initialRouteName="Home"
       screenOptions={{
         headerStyle: {
           backgroundColor: '#F1F1F1',
+        },
+        cardStyle: {
+          backgroundColor: 'white'
         },
         headerTintColor: '#fff',
         headerTitleStyle: {
@@ -63,8 +72,21 @@ const HomeStackNavigator = ({navigation}) => {
         component={CustomListItem} 
         options={{
           title: 'Pedidos Online',
+          headerRight: () => {
+            const { carrito } = useCarrito('createdAt');
+            const [shoppingCart, setShoppingCart] = useState([])
+            useEffect(() => {
+              if (carrito.length) {
+                setShoppingCart(carrito)
+              }
+            },[carrito]);
+            return <View style={styles.containerShopping}>
+              {shoppingCart.length ? <Text style={styles.textIcon}>{shoppingCart.length}</Text> : null}
+              <Icon name="shopping-cart" size={30} color="black" onPress={()=>{navigation.navigate('ShoppingCart')}}/>
+            </View>
+          },
           headerLeft: () => (
-            <NavigationDrawerStructure navigationProps={navigation}/>
+            <NavigationDrawerStructure style={{width: '100%'}} navigationProps={navigation}/>
           ),
           headerStyle: {
             backgroundColor: '#F1F1F1', //Set Header color
@@ -78,6 +100,47 @@ const HomeStackNavigator = ({navigation}) => {
       <Stack.Screen
         name="Details"
         component={DetailsScreen}
+        options={{ 
+          title: 'Pedidos Online',
+          headerRight: () => {
+            const { carrito } = useCarrito('createdAt');
+            const [shoppingCart, setShoppingCart] = useState([])
+            useEffect(() => {
+              if (carrito.length) {
+                setShoppingCart(carrito)
+              }
+            },[carrito]);
+            return <View style={styles.containerShopping}>
+              {shoppingCart.length ? <Text style={styles.textIcon}>{shoppingCart.length}</Text> : null}
+              <Icon name="shopping-cart" size={30} color="black" onPress={()=>{navigation.navigate('ShoppingCart')}}/>
+            </View>
+          },
+          headerStyle: {
+            backgroundColor: '#F1F1F1', //Set Header color
+          },
+          headerTintColor: 'black', //Set Header text color
+          headerTitleStyle: {
+            fontWeight: 'bold', //Set Header text style
+          },
+        }}
+      />
+      <Stack.Screen
+        name="UpdateProduct"
+        component={UpdateProductScreen}
+        options={{ 
+          title: 'Pedidos Online',
+          headerStyle: {
+            backgroundColor: '#F1F1F1', //Set Header color
+          },
+          headerTintColor: 'black', //Set Header text color
+          headerTitleStyle: {
+            fontWeight: 'bold', //Set Header text style
+          },
+        }}
+      />
+      <Stack.Screen
+        name="ShoppingCart"
+        component={ShoppingCartScreen}
         options={{ 
           title: 'Pedidos Online',
           headerStyle: {
@@ -99,7 +162,7 @@ const NuevoProductoStackNavigator = ({navigation}) => {
       initialRouteName="Nuevo Producto"
       screenOptions={{
         headerLeft: () => (
-          <NavigationDrawerStructure navigationProps={navigation}/>
+          <HeaderBackButton onPress={() => navigation.goBack(null)} />
         ),
         headerStyle: {
           backgroundColor: '#F1F1F1', //Set Header color
@@ -175,15 +238,6 @@ const CrearCuentaStackNavigator = ({navigation}) => {
 
 export default function App(props) {
 
-  const signOut = (props) => {
-    const salir = firebase.cerrarSesion();
-    if (salir) {
-      props.navigation.navigate("Login");
-    } else {
-      alert('Ocurrio un error intente más tarde');
-    }
-  }
-
   // CON ESTA FUNCION PODEMOS FILTAR LAS PAGINAS QUE PODRAN SER VISTAS DEPENDIENDO SI EL USUARIO ESTA LEGGED O NOT LOGGED
   function filterScreen (Screen) {
     if (firebase.auth.currentUser) {
@@ -250,4 +304,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  containerShopping: {
+    flex: 1,
+    marginRight: 10,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  textIcon: {
+    color: 'red',
+    marginBottom: -5
+  }
 });

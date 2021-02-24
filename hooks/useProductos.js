@@ -3,29 +3,29 @@ import firebase, { FirebaseContext } from '../database'
 
 const useProductos = orden => {
     
-    const [ productos, guardarProdutos ] = useState([]);
+    const [ products, guardarProdutos ] = useState([]);
   
     useEffect(() => {
         const obtenerProductos = () => {
-        firebase.db.collection('productos').orderBy(orden, 'desc').onSnapshot(manejarSnapshot);
+        firebase.db.collection('products').orderBy(orden, 'desc').onSnapshot(manejarSnapshot);
         }
         obtenerProductos();
     }, []);
 
     function manejarSnapshot (snapshot) {
         
-        const productos = snapshot.docs.map(doc => {
+        const products = snapshot.docs.map(doc => {
         return {
             id: doc.id,
             ...doc.data()
         }
         });
 
-        guardarProdutos(productos);
+        guardarProdutos(products);
     }
 
     return {
-        productos
+        products
     }
 }
 

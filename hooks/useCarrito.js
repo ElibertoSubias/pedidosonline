@@ -1,27 +1,26 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { FirebaseContext } from '../database';
+import React, { useState, useEffect, useContext } from 'react'
+import firebase, { FirebaseContext } from '../database'
 
 
 const useCarrito = orden => {
 
     const [ carrito, guardarCarrito ] = useState([]);
+
     let data = {};
-  
-    const { firebase, usuario } = useContext(FirebaseContext);
 
     useEffect(() => {
         
         const obtenerCarrito = () => {
 
-            firebase.db.collection('carrito').where('creador', '==', usuario.uid).orderBy('creado','desc').onSnapshot(manejarSnapshot);
+            firebase.db.collection('carrito').where('creador', '==', firebase.auth.currentUser.uid).orderBy('creado','desc').onSnapshot(manejarSnapshot);
 
         }
         
-        if (usuario) {
+        if (firebase.auth.currentUser) {
             obtenerCarrito();   
         }
         
-    }, [usuario]);
+    }, [firebase.auth.currentUser]);
 
     function manejarSnapshot (snapshot) {
         
