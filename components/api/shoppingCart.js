@@ -2,22 +2,23 @@ import firebase from '../../database'
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 
-export function updateProduct(product, updateComplete) {
+export async function updateProduct(product) {
   product.updatedAt = Date.now();
   console.log("Updating product in firebase");
 
-  firebase.db
-    .collection('products')
+  await firebase.db
+    .collection('carrito')
     .doc(product.id).set(product)
     .then(() => console.log('Updated correctly'))
     .catch((error) => console.log(error));
 }
 
-export function deleteProduct(product, deleteComplete) {
-  firebase.db
-    .collection('products')
-    .doc(product.id).delete()
-    .then(() => deleteComplete())
+export async function deleteProduct(id) {
+  
+  await firebase.db
+    .collection("carrito")
+    .doc(id).delete()
+    .then(() => console.log('correct'))
     .catch((error) => console.log(error));
 }
 
@@ -53,38 +54,43 @@ export async function addProduct(id) {
                 producto = doc.data();
                 producto.id = doc.id;
             });
-
+            console.log('crea'+id)
         })
+        
     .catch(function(error) {
         console.log("Error getting documents: ", error);
     });
 
     if (Object.keys(producto).length > 0) {
                 
-        // console.log(producto);
-        const nuevoTotal = producto.cantidad + 1;
+        // // console.log(producto);
+        // const nuevoTotal = producto.cantidad + 1;
         
-        // Actualizar la cantidad de producto en la BD
-        firebase.db.collection('carrito').doc(producto.id).update({
-            cantidad: nuevoTotal
-        });                
+        // // Actualizar la cantidad de producto en la BD
+        // await firebase.db.collection('carrito').doc(producto.id).update({
+        //     cantidad: nuevoTotal
+        // }).then(
+        //   console.log('actualiza'+id)
+        // ).catch(function(error) {
+        //   console.log("Error getting documents: ", error);
+        // });              
 
     } else {
         
-        // agregar el producto al carrito
-        const item = {
-            idProducto: id,
-            creado: Date.now(),
-            creador: currentUser.uid,
-            cantidad: 1
-        }
+        // // agregar el producto al carrito
+        // const item = {
+        //     idProducto: id,
+        //     creado: Date.now(),
+        //     creador: currentUser.uid,
+        //     cantidad: 1
+        // }
 
-        // Insertamos en la base de datos
-        await firebase.db.collection('carrito').add(item).then(
-
-        ).catch(function(error) {
+        // // Insertamos en la base de datos
+        // await firebase.db.collection('carrito').add(item).then(
+        //   console.log('insert'+item)
+        // ).catch(function(error) {
             
-        });
+        // });
 
     }
 

@@ -1,5 +1,5 @@
-import React, { Component, useEffect, useState } from 'react'
-import { Text, StyleSheet, TouchableOpacity, ActivityIndicator, View, Platform, SafeAreaView, Button  } from 'react-native'
+import React, { Component, useEffect, useState, useLayoutEffect } from 'react'
+import { Text, StyleSheet, TouchableOpacity, ActivityIndicator, View, Platform, SafeAreaView, Button } from 'react-native'
 import { StatusBar } from 'expo-status-bar'
 import { ListItem, Avatar, Image } from 'react-native-elements'
 import useProductos from '../hooks/useProductos'
@@ -7,6 +7,7 @@ import useCarrito from '../hooks/useCarrito'
 import { ScrollView } from 'react-native-gesture-handler'
 import auth from '../database'
 import { useMediaQuery } from "react-responsive"
+import Icon from 'react-native-vector-icons/FontAwesome'
 
 
 export const CustomListItem = (props) => {
@@ -15,6 +16,35 @@ export const CustomListItem = (props) => {
     const { products } = useProductos('createdAt');
     const { carrito } = useCarrito('createdAt');
     const currentUser = auth.auth;
+
+    useLayoutEffect(() => {
+        props.navigation.setOptions({
+            headerRight: () => {
+                const { carrito } = useCarrito('createdAt');
+                const [shoppingCart, setShoppingCart] = useState([]);
+                useEffect(() => {
+                //   console.log(carrito);
+                  if (carrito) {
+                    setShoppingCart(carrito)
+                  }
+                },[carrito]);
+                
+                return <View style={styles.containerShopping}>
+                  {shoppingCart.length ? 
+                  (
+                    <>
+                      <Text style={styles.textIcon}>{shoppingCart.length}</Text> 
+                      <Icon name="shopping-cart" size={30} color="black" onPress={()=>{props.navigation.navigate('ShoppingCart')}}/>
+                    </>
+                  ): null}
+                </View>
+              }
+        });
+    }, [carrito])
+
+    useEffect(() => {
+        // console.log(carrito);
+    },[carrito]);
 
     useEffect(() => {
         if (products.length) {
@@ -36,8 +66,9 @@ export const CustomListItem = (props) => {
             </View>
         )
     }
-
-    if (isTabletOrMobileDevice) {
+    
+    if (Platform.OS !== 'web' || isTabletOrMobileDevice) {
+        
         let {container, box, inner, safeAreaView, scrollView, contenedorImagen, imagenProducto} = stylesMovil;
 
         return (
@@ -61,19 +92,24 @@ export const CustomListItem = (props) => {
                                             </TouchableOpacity>
                                         </View>
                                         <View style={inner}>
-                                            <TouchableOpacity
-                                                    onPress={() => props.navigation.navigate('Details', {productoId: product.id})}
-                                                >
-                                                <View style={{paddingBottom:5}}>
-                                                    <Text style={{fontSize:16,fontWeight:'bold'}}>{product.nameProduct}</Text>
-                                                </View>
-                                            </TouchableOpacity>
-                                            <View style={{paddingBottom:10}}>
-                                                <Text>{product.description}</Text>
+                                            <View style={{flex: 1,width: '100%'}}>
+                                                <TouchableOpacity
+                                                        onPress={() => props.navigation.navigate('Details', {productoId: product.id})}
+                                                    >
+                                                    <View style={{marginBottom: 10, paddingTop: 10}}>
+                                                        <Text style={{fontSize: 16, fontWeight:'bold', fontFamily: 'PoiretOne_400Regular'}}>{product.nameProduct}</Text>
+                                                    </View>
+                                                </TouchableOpacity>
                                             </View>
-                                            <View style={{flexDirection: 'row',width: '100%'}}>
-                                                <View style={{padding: 5, width:'50%'}}>
-                                                    <Text style={{fontSize:18,fontWeight:'600'}}>${product.price}</Text>
+                                            <View style={{flex: 1,width: '100%'}}>
+                                                <Text style={{fontFamily: 'PoiretOne_400Regular'}}>{product.description}</Text>
+                                            </View>
+                                            <View style={{flexDirection: 'row', width: '100%'}}>
+                                                <View style={{width: '50%'}}>
+                                                    <Text style={{fontSize:18,fontWeight:'bold',fontFamily: 'PoiretOne_400Regular', color: '#eb7d30'}}>${product.price}.00</Text>
+                                                </View>
+                                                <View  style={{width: '50%', alignItems: 'flex-end', justifyContent: 'center'}}>
+                                                    <Icon style={{paddingEnd: 5}} name="cart-plus" size={25} color="black" onPress={()=>{props.navigation.navigate('ShoppingCart')}}/>
                                                 </View>
                                             </View>
                                         </View>
@@ -136,7 +172,9 @@ export const CustomListItem = (props) => {
 
 const stylesDesktop = StyleSheet.create({
     safeAreaView: {
-      flex: 1
+      flex: 1,
+      backgroundColor: '#f1f0ef',
+      fontFamily: 'PoiretOne_400Regular',
     },
     container: {
       flex: 1,
@@ -174,7 +212,7 @@ const stylesDesktop = StyleSheet.create({
 
   const stylesMovil = StyleSheet.create({
     safeAreaView: {
-      backgroundColor: 'white'
+      backgroundColor: '#f1f0ef'
     },
     scrollView: {
         
@@ -187,18 +225,29 @@ const stylesDesktop = StyleSheet.create({
     //   backgroundColor: 'red',
       width: '100%',
       marginBottom: 200,
-      padding: 5,
+      padding: 10,
       flexDirection: 'row',
       flexWrap: 'wrap'
     },
     box: {
       width: '100%',
-      height: '12%',
+      height: '16%',
       padding: 5,
-      flexDirection: 'row'
-    //   backgroundColor: 'black'
+      marginBottom: 10,
+      flexDirection: 'row',
+      backgroundColor: 'white',
+      borderRadius: 4,
+      shadowColor: 'black',
+        shadowOpacity: 0.10,
+        shadowOffset: { width: 0, height: 0},
+        shadowRadius: 5,
+        elevation: 3,
     },
     contenedorImagen: {
+        marginStart: 10,
+        marginEnd: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
         width: '30%'
     },
     inner: {
@@ -224,3 +273,22 @@ const stylesDesktop = StyleSheet.create({
       marginTop: 40
     }
 });
+
+const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: '#fff',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    containerShopping: {
+      flex: 1,
+      marginRight: 10,
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    textIcon: {
+      color: 'red',
+      marginBottom: -5
+    }
+  });

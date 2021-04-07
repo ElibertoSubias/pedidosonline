@@ -1,5 +1,5 @@
 import React, { Component, useEffect, useState } from 'react'
-import { Text, StyleSheet, TouchableOpacity, ActivityIndicator, View, Platform, SafeAreaView, Button  } from 'react-native'
+import { Text, StyleSheet, ActivityIndicator, View  } from 'react-native'
 import { StatusBar } from 'expo-status-bar'
 import { ListItem, Avatar, Image } from 'react-native-elements'
 import useProductos from '../../hooks/useProductos'
@@ -18,15 +18,24 @@ export const ShoppingCart = (props) => {
 
     useEffect(() => {
         if (carrito.length) {
-            // setCargando(false);
+            setCargando(false);
         }
     },[carrito]);
 
-    return (
-        <View style={styles.containerShopping}>
-            <Text style={styles.textIcon}>{carrito.length}</Text>
-            <Icon name="shopping-cart" size={30} color="black" onPress={()=>{navigation.navigate('ShoppingCart')}}/>
+    if (cargando) {
+      return (
+        <View>
+            <View style={{height:200}}/>
+            <ActivityIndicator size="large" color="#9e9e9e"/>
         </View>
+      )
+    }
+
+    return (
+      <View style={styles.containerShopping}>
+          <Text style={styles.textIcon}>{carrito.length}</Text>
+          <Icon name="shopping-cart" size={30} color="black" onPress={()=>{navigation.navigate('ShoppingCart')}}/>
+      </View>
     )
 }
 

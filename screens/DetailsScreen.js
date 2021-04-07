@@ -12,6 +12,7 @@ export const DetailsScreen = (props) => {
 
     const { carrito } = useCarrito('createdAt');
     
+    
     const initialState = {
         id: '',
         nameProduct: '',
@@ -55,7 +56,6 @@ export const DetailsScreen = (props) => {
         }
         
         addProduct(id);
-        console.log(carrito);
     
     }
 

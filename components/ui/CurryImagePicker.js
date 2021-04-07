@@ -53,7 +53,7 @@ const CurryImagePicker = ({ image, onImagePicked }) => {
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
-        <Image source={selectedImage} style={styles.previewImage} name="image"/>
+        <Image source={selectedImage ? selectedImage : {url:''}} style={styles.previewImage} name="image"/>
       </View>
       <View>
         <Button styels={styles.button} title="Seleccionar fotografia" onPress={pickImageHandler} />

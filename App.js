@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler'
 import { StatusBar } from 'expo-status-bar'
 import React, {useEffect, useState} from 'react'
-import { StyleSheet, Text, View, TouchableOpacity, Button } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { Image } from 'react-native-elements'
 import { NavigationContainer } from '@react-navigation/native'
 import { createDrawerNavigator } from '@react-navigation/drawer'
@@ -21,6 +21,7 @@ import Icon from 'react-native-vector-icons/FontAwesome'
 import CustomSidebarMenu from './components/CustomSidebarMenu'
 import { CarritoScreen } from './screens/ShoppingCartScreen'
 import useCarrito from './hooks/useCarrito'
+import { useFonts, PoiretOne_400Regular  } from '@expo-google-fonts/poiret-one';
 
 const Drawer = createDrawerNavigator();
 const Stack = createStackNavigator();
@@ -58,9 +59,9 @@ const HomeStackNavigator = ({navigation}) => {
         headerStyle: {
           backgroundColor: '#F1F1F1',
         },
-        cardStyle: {
-          backgroundColor: 'white'
-        },
+        // cardStyle: {
+        //   backgroundColor: 'red'
+        // },
         headerTintColor: '#fff',
         headerTitleStyle: {
           fontWeight: 'bold',
@@ -69,31 +70,42 @@ const HomeStackNavigator = ({navigation}) => {
     >
       <Stack.Screen 
         name="Home"
-        component={CustomListItem} 
+        component={CustomListItem}
         options={{
           title: 'Pedidos Online',
           headerRight: () => {
             const { carrito } = useCarrito('createdAt');
-            const [shoppingCart, setShoppingCart] = useState([])
+            const [shoppingCart, setShoppingCart] = useState([]);
             useEffect(() => {
-              if (carrito.length) {
+              console.log(carrito);
+              if (carrito) {
                 setShoppingCart(carrito)
               }
             },[carrito]);
+            
             return <View style={styles.containerShopping}>
-              {shoppingCart.length ? <Text style={styles.textIcon}>{shoppingCart.length}</Text> : null}
-              <Icon name="shopping-cart" size={30} color="black" onPress={()=>{navigation.navigate('ShoppingCart')}}/>
+              {shoppingCart.length ? 
+              (
+                <>
+                  <Text style={styles.textIcon}>{shoppingCart.length}</Text> 
+                  <Icon name="shopping-cart" size={30} color="black" onPress={()=>{navigation.navigate('ShoppingCart')}}/>
+                </>
+              ): null}
             </View>
           },
           headerLeft: () => (
             <NavigationDrawerStructure style={{width: '100%'}} navigationProps={navigation}/>
           ),
           headerStyle: {
-            backgroundColor: '#F1F1F1', //Set Header color
+            backgroundColor: 'white', //Set Header color
           },
-          headerTintColor: 'black', //Set Header text color
+          headerTintColor: '#eb7d30', //Set Header text color
           headerTitleStyle: {
             fontWeight: 'bold', //Set Header text style
+            fontFamily: 'PoiretOne_400Regular',
+            fontSize: 30,
+            textAlign: 'center',
+            width: '100%'
           },
         }}
       />
@@ -102,25 +114,14 @@ const HomeStackNavigator = ({navigation}) => {
         component={DetailsScreen}
         options={{ 
           title: 'Pedidos Online',
-          headerRight: () => {
-            const { carrito } = useCarrito('createdAt');
-            const [shoppingCart, setShoppingCart] = useState([])
-            useEffect(() => {
-              if (carrito.length) {
-                setShoppingCart(carrito)
-              }
-            },[carrito]);
-            return <View style={styles.containerShopping}>
-              {shoppingCart.length ? <Text style={styles.textIcon}>{shoppingCart.length}</Text> : null}
-              <Icon name="shopping-cart" size={30} color="black" onPress={()=>{navigation.navigate('ShoppingCart')}}/>
-            </View>
-          },
           headerStyle: {
-            backgroundColor: '#F1F1F1', //Set Header color
+            backgroundColor: 'white', //Set Header color
           },
-          headerTintColor: 'black', //Set Header text color
+          fontFamily: 'PoiretOne_400Regular',
+          headerTintColor: '#eb7d30', //Set Header text color
           headerTitleStyle: {
             fontWeight: 'bold', //Set Header text style
+            fontFamily: 'PoiretOne_400Regular'
           },
         }}
       />
@@ -132,9 +133,11 @@ const HomeStackNavigator = ({navigation}) => {
           headerStyle: {
             backgroundColor: '#F1F1F1', //Set Header color
           },
-          headerTintColor: 'black', //Set Header text color
+          fontFamily: 'PoiretOne_400Regular',
+          headerTintColor: '#eb7d30', //Set Header text color
           headerTitleStyle: {
             fontWeight: 'bold', //Set Header text style
+            fontFamily: 'PoiretOne_400Regular'
           },
         }}
       />
@@ -142,13 +145,15 @@ const HomeStackNavigator = ({navigation}) => {
         name="ShoppingCart"
         component={ShoppingCartScreen}
         options={{ 
-          title: 'Pedidos Online',
+          title: 'Carrito de Compras',
           headerStyle: {
             backgroundColor: '#F1F1F1', //Set Header color
           },
-          headerTintColor: 'black', //Set Header text color
+          fontFamily: 'PoiretOne_400Regular',
+          headerTintColor: '#eb7d30', //Set Header text color
           headerTitleStyle: {
             fontWeight: 'bold', //Set Header text style
+            fontFamily: 'PoiretOne_400Regular'
           },
         }}
       />
@@ -251,7 +256,20 @@ export default function App(props) {
     }
   }
 
+  let [fontsLoaded] = useFonts({
+    PoiretOne_400Regular,
+  });
+
+  if (!fontsLoaded) {
+    return <View>
+              <View style={{height:200}}/>
+              <ActivityIndicator size="large" color="#9e9e9e"/>
+          </View>;
+  }
+
   return (
+    <>
+    <StatusBar/>
     <NavigationContainer>
       <Drawer.Navigator
         drawerContent={(props) => 
@@ -294,6 +312,7 @@ export default function App(props) {
         />
       </Drawer.Navigator>
     </NavigationContainer>
+    </>
   );
 }
 
@@ -303,15 +322,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  containerShopping: {
-    flex: 1,
-    marginRight: 10,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  textIcon: {
-    color: 'red',
-    marginBottom: -5
   }
 });

@@ -30,7 +30,7 @@ const useCarrito = orden => {
                 ...doc.data()
             }
         });
-
+        
         guardarCarrito(carrito);
 
     }
